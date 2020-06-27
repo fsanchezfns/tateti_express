@@ -9,7 +9,7 @@
      > npm install
 
 * redis run:
-     > docker run --name paredis -p 6379:6379 redis
+     > docker run --name redistateti -p 6379:6379 redis 
 
 * run the app:
      > SET DEBUG=tateti-express:* & npm start
