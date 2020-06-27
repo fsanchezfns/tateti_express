@@ -19,14 +19,84 @@
 
 # 📄 ApiRest documentation
 
-## Name
+## Response
+
+* Response
+
+```
+{
+"status":{
+     "flag":"",
+     "message":""
+     },
+"payload":""
+}
+```
+
+* Response Sucess  - Code HTTP 200
+
+```
+{
+"status":{
+     "flag":"S",
+     "message":""
+     },
+"payload":"Data"
+}
+```
+
+* Response Error  - Code HTTP 400
+```
+{
+"status":{
+     "flag":"N",
+     "message":"Error"
+     },
+"payload":""
+}
+```
 
 
-* View 
+## Tablero
+
+* GET 
 
 ```
 GET localhost:3000/
 ```
 ```
 curl -X GET localhost:3000/
+```
+
+
+
+
+
+
+## Key Redis 
+
+
+```
+* ArrayBoard
+key = `board#${idBoard}`; 
+key = board#1
+
+
+* StateBoard
+key = `board#${idBoard}state`;
+key = board#1state
+
+
+* PlayeresBoard
+key = `board#${idBoard}player#{idPlayer}`;
+key = board#1player#1`;
+key = board#1player#2`;
+
+key = `board#${idBoard}currentplayer`;
+
+
+* WinnerBoard
+key = `board#${idBoard}winner`;
+key = `board#1winner`;
+
 ```

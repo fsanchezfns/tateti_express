@@ -46,7 +46,7 @@ function getLastId(key) {
             if (result) {
                 resolve(result);
             } else {
-                reject(0);
+                resolve(0);
             }
         });
     });
