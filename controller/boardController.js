@@ -1,26 +1,19 @@
 var Board = require('../model/Board');
 var authentication = require('../security/authentication')
 var hlresponse = require('../helper/hlResponse');
-const tokenGenerator = require('token-generator');
-const { auth } = require('../db/dbRedisConfig');
 const ERROR_FLAG = 'N';
 const SUCESS_FLAG = 'S';
 
 
 
 async function getBoard(token, params) {
-    console.log('getBoard')
-    console.log(token)
     idBoard = params.idBoard;
-    console.log(idBoard)
     authAux = await authentication.getPlayers(token, idBoard)
 
-    console.log(authAux)
     if (authAux.flag == SUCESS_FLAG) {
         dtoPlayer = authAux.data;
-        idPlayer = dtoPlayer.idPlayer;
-        console.log('duda' + dtoPlayer.idPlayer)
-        result = await Board.getBoard(idBoard, idPlayer);
+
+        result = await Board.getBoard(dtoPlayer);
         return hlresponse.response(result);
 
     } else {
@@ -30,10 +23,9 @@ async function getBoard(token, params) {
 
 async function createBoard() {
     authAux = await authentication.newPlayer()
-    console.log('dale' + authAux)
     if (authAux.flag == SUCESS_FLAG) {
-        dtoPlayer = authAux.data;
-        result = await Board.createBoard(dtoPlayer);
+        dtoPlayerSimple = authAux.data;
+        result = await Board.createBoard(dtoPlayerSimple);
 
         return hlresponse.response(result);
     } else {
@@ -42,4 +34,27 @@ async function createBoard() {
 }
 
 
-module.exports = { getBoard, createBoard };
+
+async function markBoard(token, params, body) {
+    index = parseInt(JSON.parse(body).index);
+    console.log(index)
+    idBoard = params.idBoard;
+    authAux = await authentication.getPlayers(token, idBoard)
+
+    if (authAux.flag == SUCESS_FLAG) {
+        dtoPlayer = authAux.data;
+        result = await Board.markBoard(dtoPlayer, index);
+        return hlresponse.response(result);
+
+    } else {
+        return hlresponse.response(authAux);
+    }
+}
+
+
+
+
+
+
+
+module.exports = { getBoard, createBoard, markBoard };

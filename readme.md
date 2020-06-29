@@ -125,6 +125,7 @@ key = `board#1winner`;
 ```
 /*
 dtoPlayer
+dtoPlayer.idBoard = idBoard;
 dtoPlayer.idPlayer = idPlayer
 dtoPlayer.mark = mark;
 dtoPlayer.isPlayer = isPlayer;

@@ -82,8 +82,9 @@ async function getPlayers(token, idBoard) {
                 isPlayer = false;
             }
 
-            //datos de los player
-            dtoPlayer.idPlayer = idPlayer
+            //DTO PLAYER
+            dtoPlayer.idBoard = idBoard;
+            dtoPlayer.idPlayer = idPlayer;
             dtoPlayer.mark = mark;
             dtoPlayer.isPlayer = isPlayer;
             dtoPlayer.otherPlayer = otherPlayer;

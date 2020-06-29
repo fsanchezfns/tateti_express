@@ -16,28 +16,26 @@ router.use(myAuthorization)
 
 router.get('/:idBoard', async function(req, res, next) {
     token = req.token
-    console.log('token', token)
     resAux = await boardController.getBoard(token, req.params);
-    console.log('final' + resAux)
     res.status(resAux.httpCode)
     res.end(resAux.data);
 });
 
 
 router.post('/', async function(req, res, next) {
-    body = JSON.stringify(req.body);
-    resAux = await boardController.createBoard(body)
+    body = JSON.stringify(req.body); //no necesito body :)
+    resAux = await boardController.createBoard()
     res.status(resAux.httpCode)
     res.end(resAux.data);
 });
 
-router.put('/:token', async function(req, res, next) {
-    //value = JSON.stringify(req.body);
-    //idPlayer = 1
-    // token = req.params.token;
-    // security.checkToken(token);
-
-    // res.end(token);
+router.put('/:idBoard', async function(req, res, next) {
+    token = req.token
+    body = JSON.stringify(req.body);
+    console.log('body en router' + body);
+    resAux = await boardController.markBoard(token, req.params, body);
+    res.status(resAux.httpCode)
+    res.end(resAux.data);
 });
 
 
