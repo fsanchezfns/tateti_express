@@ -32,8 +32,15 @@ router.post('/', async function(req, res, next) {
 router.put('/:idBoard', async function(req, res, next) {
     token = req.token
     body = JSON.stringify(req.body);
-    console.log('body en router' + body);
     resAux = await boardController.markBoard(token, req.params, body);
+    res.status(resAux.httpCode)
+    res.end(resAux.data);
+});
+
+
+router.delete('/:idBoard', async function(req, res, next) {
+    token = req.token
+    resAux = await boardController.cancelBoard(token, req.params);
     res.status(resAux.httpCode)
     res.end(resAux.data);
 });

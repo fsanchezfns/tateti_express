@@ -37,7 +37,6 @@ async function createBoard() {
 
 async function markBoard(token, params, body) {
     index = parseInt(JSON.parse(body).index);
-    console.log(index)
     idBoard = params.idBoard;
     authAux = await authentication.getPlayers(token, idBoard)
 
@@ -52,9 +51,24 @@ async function markBoard(token, params, body) {
 }
 
 
+async function cancelBoard(token, params) {
+    idBoard = params.idBoard;
+    authAux = await authentication.getPlayers(token, idBoard)
+
+    if (authAux.flag == SUCESS_FLAG) {
+        dtoPlayer = authAux.data;
+
+        result = await Board.cancelBoard(dtoPlayer);
+        return hlresponse.response(result);
+
+    } else {
+        return hlresponse.response(authAux);
+    }
+}
 
 
 
 
 
-module.exports = { getBoard, createBoard, markBoard };
+
+module.exports = { getBoard, createBoard, markBoard, cancelBoard };

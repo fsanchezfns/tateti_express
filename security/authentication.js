@@ -10,7 +10,6 @@ const MARK_PLAYER2 = '2';
 async function newPlayer() {
     result = new Object();
     dtoPlayerSimple = new Object();
-    console.log('newPlayer')
     try {
         key = 'playerId';
         lastPlayerId = await dbRedis.getLastId(key);
@@ -27,11 +26,9 @@ async function newPlayer() {
         dtoPlayerSimple.idPlayer = idPlayer
         result.flag = SUCESS_FLAG;
         result.data = dtoPlayerSimple;
-        console.log('todo ok')
         return result;
 
     } catch (err) {
-        console.log(err)
         result.flag = ERROR_FLAG;
         result.error = 'Error interno al crear un nuevo jugador';
         return result;
@@ -41,7 +38,6 @@ async function newPlayer() {
 
 
 async function getPlayers(token, idBoard) {
-    console.log('idBoard en authetication' + idBoard)
     result = new Object();
     dtoPlayer = new Object();
     isValidToken = securityToken.checkToken(token)
@@ -51,7 +47,6 @@ async function getPlayers(token, idBoard) {
 
             //querys de player#1 player#2 y current
             dtoBoardPlayer = await getPlayerForBoard(idBoard);
-            console.log('dtoBoardPlayer' + JSON.stringify(dtoBoardPlayer))
             idPlayer1 = dtoBoardPlayer.idPlayer1
             idPlayer2 = dtoBoardPlayer.idPlayer2
             currentPlayer = dtoBoardPlayer.currentPlayer

@@ -1,5 +1,4 @@
 const dbRedis = require('../db/dbRedis');
-const { object } = require('../db/dbRedisConfig');
 
 const ERROR_FLAG = 'N';
 const SUCESS_FLAG = 'S';
@@ -83,14 +82,11 @@ async function getBoard(dtoPlayer) {
             return driverCatch(key);
         }
 
-
     } catch {
         return driverCatch(key);
 
     }
 }
-
-
 
 
 async function createBoard(dtoPlayerSimple) {
@@ -109,17 +105,17 @@ async function createBoard(dtoPlayerSimple) {
         key = `board#${idBoard}`
 
         try {
-            value = '[0,0,0,0,0,0,0,0,0]';
-            algo = await dbRedis.set(key, value);
-            algo2 = await dbRedis.set('boardId', idBoard);
+            value = '0,0,0,0,0,0,0,0,0';
+            await dbRedis.set(key, value);
+            await dbRedis.set('boardId', idBoard);
             //seteo el estado inicial "incompleto"
             resultAux = await setBoardState(idBoard, STATE_INCOMPLETO)
-            if (resultAux.flag == 'N') return resultAux;
+            if (resultAux.flag == ERROR_FLAG) return resultAux;
 
             //si esta todo ok, seteo el primer player
             keyAux = 'player#1';
             resultAux = await setBoardPlayer(idBoard, keyAux, idPlayer)
-            if (resultAux.flag == 'N') return resultAux;
+            if (resultAux.flag == ERROR_FLAG) return resultAux;
 
             dtoBoard.idBoard = idBoard;
             dtoBoard.token = token;
@@ -133,32 +129,27 @@ async function createBoard(dtoPlayerSimple) {
         }
 
     } else {
-        //hay un tablero esperando agrego el player 2 y comienzo el juego
-
-        console.log('hay un tablero y es este el status')
-        console.log(resultAux)
+        //hay un tablero esperando, agrego el player 2 y comienzo el juego
 
         idBoard = resultAux.data
         keyAux = 'player#2';
 
         resultAux = await setBoardPlayer(idBoard, keyAux, idPlayer);
-        if (resultAux.flag == 'N') return resultAux;
+        if (resultAux.flag == ERROR_FLAG) return resultAux;
 
         //seteo el estado jugando
         resultAux = await setBoardState(idBoard, STATE_PLAYING);
-        if (resultAux.flag == 'N') return resultAux;
+        if (resultAux.flag == ERROR_FLAG) return resultAux;
 
 
         //ramdom current player 
         playerRandom = await getRandomArbitrary(1, 3) //entre 1 y 2, ya que el 3 lo excluye
-        console.log('randomjugador' + playerRandom)
-        console.log('id board c: ' + idBoard)
         key = `board#${idBoard}player#${playerRandom}`;
         try {
             idPlayerRandom = await dbRedis.get(key)
             keyAux = 'currentPlayer';
             resultAux = await setBoardPlayer(idBoard, keyAux, idPlayerRandom)
-            if (resultAux.flag == 'N') return resultAux;
+            if (resultAux.flag == ERROR_FLAG) return resultAux;
 
             dtoBoard.idBoard = idBoard;
             dtoBoard.token = token;
@@ -175,7 +166,6 @@ async function createBoard(dtoPlayerSimple) {
 
 
 async function markBoard(dtoPlayer, index) {
-    console.log(index)
     result = new Object();
     idBoard = dtoPlayer.idBoard;
     idPlayer = dtoPlayer.idPlayer;
@@ -205,28 +195,26 @@ async function markBoard(dtoPlayer, index) {
 
         if (state != STATE_PLAYING) {
             result.flag = ERROR_FLAG;
-            result.error = 'Lo lamento no se esta jugando!';
+            result.error = `Lo lamento no se esta jugando, el estado es: ${state}`;
             return result;
         }
 
+        //recupero el string del board y lo paso a array
         key = `board#${idBoard}`
         board = await dbRedis.get(key);
-        console.log('acaesoty')
-        console.log(board)
         boardArray = Array.from(board.split(','))
 
+        //verifico que no este ocupado
         if (boardArray[index] != "0") {
             result.flag = ERROR_FLAG;
-            result.error = 'movimiento no valido';
+            result.error = 'Movimiento no valido';
             return result;
         }
 
-
+        //marco el lugar
         boardArray[index] = mark;
-
-        resultAux = await saveMove(idBoard, boardArray, idPlayer, otherPlayer)
-
-        return resultAux;
+        resuAux = await saveMove(idBoard, boardArray, idPlayer, otherPlayer);
+        return resuAux;
 
     } catch {
         driverCatch(key)
@@ -234,46 +222,62 @@ async function markBoard(dtoPlayer, index) {
 
 }
 
+async function cancelBoard(dtoPlayer) {
+    result = new Object();
+    dtoBoard = new Object();
+    idBoard = dtoPlayer.idBoard;
+    isPlayer = dtoPlayer.isPlayer;
+
+
+    if (!isPlayer) {
+        result.flag = ERROR_FLAG;
+        result.error = 'No es tu turno!';
+        return result;
+    }
+
+    key = `board#${idBoard}state`;
+    try {
+        state = await dbRedis.get(key);
+
+        if (state != STATE_PLAYING) {
+            result.flag = ERROR_FLAG;
+            result.error = `Lo lamento no se esta jugando, el estado es: ${state}`;
+            return result;
+        }
+
+        resultAux = await setBoardState(idBoard, STATE_CANCEL);
+        if (resultAux.flag == ERROR_FLAG) return resultAux;
+
+        dtoBoard.board = boardArray;
+        result.flag = SUCESS_FLAG;
+        result.data = dtoBoard;
+        return result;
+
+    } catch {
+        driverCatch('No se pudo finalizar la partida')
+
+    }
+}
+
+
+
 
 //guarda movimiento y evalua ganador o finalizacion
 async function saveMove(idBoard, boardArray, idPlayer, otherPlayer) {
+    result = new Object();
     try {
-        result = new Object();
-        isWin = false;
+        dtoBoard = new Object();
         isFinish = false;
-        //horizontales
-        if (boardArray[0] != "0" & boardArray[0] == boardArray[1] & boardArray[1] == boardArray[2]) isWin = true;
-        if (boardArray[3] != "0" & boardArray[3] == boardArray[4] & boardArray[4] == boardArray[5]) isWin = true;
-        if (boardArray[6] != "0" & boardArray[6] == boardArray[7] & boardArray[7] == boardArray[8]) isWin = true;
-
-        //verticales 
-        if (boardArray[0] != "0" & boardArray[0] == boardArray[3] & boardArray[3] == boardArray[6]) isWin = true;
-        if (boardArray[1] != "0" & boardArray[1] == boardArray[4] & boardArray[4] == boardArray[7]) isWin = true;
-        if (boardArray[2] != "0" & boardArray[2] == boardArray[5] & boardArray[5] == boardArray[8]) isWin = true;
-
-        //cruzado
-        if (boardArray[0] != "0" & boardArray[0] == boardArray[4] & boardArray[4] == boardArray[8]) isWin = true;
-        if (boardArray[2] != "0" & boardArray[2] == boardArray[4] & boardArray[4] == boardArray[6]) isWin = true;
+        isWin = await checkIsWin(boardArray);
 
         //SI NO HAY WIN, Verificacion de juego terminado 
-        if (!isWin) {
-            isFinish = true;
-            for (let i = 0; i < 9; i++) {
-                element = boardArray[i];
-                if (element == '0') {
-                    //si hay algun elemento '0' se sigue jugando
-                    isFinish = false;
-                    break
-                }
-            }
+        if (!isWin) isFinish = await checkIsFinish(boardArray);
 
-        }
-        console.log('niii:' + boardArray)
 
         //guardo el board
         key = `board#${idBoard}`
-        p = await dbRedis.set(key, boardArray.toString());
-        console.log(p)
+        await dbRedis.set(key, boardArray.toString());
+
 
         //Determino respuesta segun logica
         if (isWin) {
@@ -281,36 +285,73 @@ async function saveMove(idBoard, boardArray, idPlayer, otherPlayer) {
             await dbRedis.set(key, idPlayer);
 
             resultAux = await setBoardState(idBoard, STATE_WINNER);
-            if (resultAux.flag = ERROR_FLAG) return resultAux;
+            if (resultAux.flag == ERROR_FLAG) return resultAux;
 
+            dtoBoard.board = boardArray;
             result.flag = SUCESS_FLAG;
-            result.data = 'winner' + boardArray;
+            result.data = dtoBoard;
             return result;
         }
 
         if (isFinish) {
             resultAux = await setBoardState(idBoard, STATE_FINISH)
-            if (resultAux.flag = ERROR_FLAG) return resultAux;
+            if (resultAux.flag == ERROR_FLAG) return resultAux;
+            dtoBoard.board = boardArray;
             result.flag = SUCESS_FLAG;
-            result.data = 'finish' + boardArray;
+            result.data = dtoBoard;
             return result;
         }
 
         keyAux = 'currentPlayer';
         resultAux = await setBoardPlayer(idBoard, keyAux, otherPlayer)
-        if (resultAux.flag = ERROR_FLAG) return resultAux;
+        if (resultAux.flag == ERROR_FLAG) return resultAux;
+        dtoBoard.board = boardArray;
         result.flag = SUCESS_FLAG;
-        result.data = 'playing' + boardArray;
+        result.data = dtoBoard;
         return result;
 
 
-    } catch (err) {
+    } catch {
 
         result.flag = ERROR_FLAG;
-        result.error = 'error al guardar el movimiento ' + (err);
+        result.error = 'error al guardar el movimiento';
         return result
 
     }
+}
+
+//verificar winner
+function checkIsWin(boardArray) {
+    //horizontales
+    if (boardArray[0] != "0" & boardArray[0] == boardArray[1] & boardArray[1] == boardArray[2]) return true;
+    if (boardArray[3] != "0" & boardArray[3] == boardArray[4] & boardArray[4] == boardArray[5]) return true;
+    if (boardArray[6] != "0" & boardArray[6] == boardArray[7] & boardArray[7] == boardArray[8]) return true;
+
+    //verticales 
+    if (boardArray[0] != "0" & boardArray[0] == boardArray[3] & boardArray[3] == boardArray[6]) return true;
+    if (boardArray[1] != "0" & boardArray[1] == boardArray[4] & boardArray[4] == boardArray[7]) return true;
+    if (boardArray[2] != "0" & boardArray[2] == boardArray[5] & boardArray[5] == boardArray[8]) return true;
+
+    //cruzado
+    if (boardArray[0] != "0" & boardArray[0] == boardArray[4] & boardArray[4] == boardArray[8]) return true;
+    if (boardArray[2] != "0" & boardArray[2] == boardArray[4] & boardArray[4] == boardArray[6]) return true;
+
+    return false;
+}
+
+
+//verificar finihs
+function checkIsFinish(boardArray) {
+    isFinish = true;
+    for (let i = 0; i < 9; i++) {
+        element = boardArray[i];
+        if (element == '0') {
+            //si hay algun elemento '0' se sigue jugando
+            isFinish = false;
+            break
+        }
+    }
+    return isFinish;
 }
 
 
@@ -332,7 +373,6 @@ async function setBoardState(id, state) {
 
 //Setea jugadores al board
 async function setBoardPlayer(idBoard, keyAux, idPlayer) {
-    console.log('setBoardPlayer' + idBoard + keyAux + idPlayer)
     result = new Object();
     key = `board#${idBoard}${keyAux}`;
     try {
@@ -354,7 +394,6 @@ async function searchBoardState(state) {
     key = "board#[1-9]*state"
     try {
         keys = await dbRedis.getKeys(key)
-        console.log('keys' + keys)
         for (var item in keys) {
             boardState = await dbRedis.get(keys[item]);
             if (boardState == state) {
@@ -381,10 +420,9 @@ function driverCatch(key) {
     resultAux = new Object()
     resultAux.flag = ERROR_FLAG;
     resultAux.error = `${key} not found`;
-    console.log('ERRORRRRRR de driver')
-    console.log(resultAux)
     return resultAux;
 }
+
 
 
 //Helper para selecionar al azar el jugador
@@ -395,4 +433,4 @@ async function getRandomArbitrary(min, max) {
 }
 
 
-module.exports = { getBoard, createBoard, markBoard };
+module.exports = { getBoard, createBoard, markBoard, cancelBoard };
