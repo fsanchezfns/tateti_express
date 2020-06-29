@@ -65,13 +65,32 @@
 GET localhost:3000/
 ```
 ```
-curl -X GET localhost:3000/
+curl -X GET -H "authorization:08e7bfjdebcjeg" localhost:3000/board/16
+curl -X GET -H "authorization:49fcbfjdebbdgg" localhost:3000/board/16
 ```
 
 
 
+* POST 
 
-
+```
+curl -X POST localhost:3000/board
+```
+```
+{"status":{"flag":"S","message":""},"payload":{"idBoard":17,"token":"72aebfjdebdece"}}
+```
+```
+curl -X GET -H "authorization:72aebfjdebdece" localhost:3000/board/17
+```
+```
+-X POST localhost:3000/board
+```
+```
+{"status":{"flag":"S","message":""},"payload":{"idBoard":"17","token":"991dbfjdebdehg"}}
+```
+```
+curl -X GET -H "authorization:991dbfjdebdehg" localhost:3000/board/17
+```
 
 ## Key Redis 
 
@@ -98,5 +117,34 @@ key = `board#${idBoard}currentplayer`;
 * WinnerBoard
 key = `board#${idBoard}winner`;
 key = `board#1winner`;
+
+```
+
+
+* Estructuras
+```
+/*
+dtoPlayer
+dtoPlayer.idPlayer = idPlayer
+dtoPlayer.mark = mark;
+dtoPlayer.isPlayer = isPlayer;
+dtoPlayer.otherPlayer = otherPlayer;
+*/
+
+
+/*
+dtoPlayerSimple
+dtoPlayer.idPlayer = idPlayer;
+dtoPlayer.token = token;
+*/
+
+
+dtoBoard
+
+dtoBoardPlayer
+dtoBoardPlayer = new Object()
+dtoBoardPlayer.idPlayer1 = idPlayer1;
+dtoBoardPlayer.idPlayer2 = idPlayer2;
+dtoBoardPlayer.currentPlayer = currentPlayer;
 
 ```

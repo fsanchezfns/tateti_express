@@ -13,8 +13,7 @@ const STATE_WINNER = 'W'; // un ganador
 
 async function getBoard(idBoard, idPlayer) {
     result = new Object();
-    idPlayer = 2
-        //Array del board
+    //Array del board
     key = `board#${idBoard}`;
     try {
         board = await dbRedis.get(key)
@@ -90,13 +89,13 @@ async function getBoard(idBoard, idPlayer) {
 
 
 
-async function createBoard(idPlayer) {
+async function createBoard(dtoPlayerSimple) {
+    idPlayer = dtoPlayerSimple.idPlayer;
+    token = dtoPlayerSimple.token;
     dtoBoard = new Object()
         //primero busco si hay alguno en estado incompleto para agregar al segundo jugador
     var result = new Object();
-    console.log('aca toy ')
     resultAux = await searchBoardState(STATE_INCOMPLETO)
-    console.log(resultAux)
 
     if (resultAux.flag == ERROR_FLAG) {
         // si no hay creo un board desde cero
@@ -118,7 +117,8 @@ async function createBoard(idPlayer) {
             resultAux = await setBoardPlayer(idBoard, keyAux, idPlayer)
             if (resultAux.flag == 'N') return resultAux;
 
-            dtoBoard.idBoard = idBoard
+            dtoBoard.idBoard = idBoard;
+            dtoBoard.token = token;
             result.flag = SUCESS_FLAG;
             result.data = dtoBoard;
             return result;
@@ -157,6 +157,7 @@ async function createBoard(idPlayer) {
             if (resultAux.flag == 'N') return resultAux;
 
             dtoBoard.idBoard = idBoard;
+            dtoBoard.token = token;
             result.flag = SUCESS_FLAG;
             result.data = dtoBoard;
             return result;
@@ -228,6 +229,9 @@ async function searchBoardState(state) {
     }
 
 }
+
+
+
 
 
 

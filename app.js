@@ -5,7 +5,7 @@ var logger = require('morgan');
 var bodyParser = require('body-parser');
 
 var indexRouter = require('./routes/index');
-var tableroRouter = require('./routes/tablero');
+var boardRouter = require('./routes/board');
 
 var app = express();
 
@@ -20,6 +20,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.json())
 
 app.use('/', indexRouter);
-app.use('/tablero', tableroRouter);
+app.use('/board', boardRouter);
 
 module.exports = app;
