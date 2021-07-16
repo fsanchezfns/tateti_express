@@ -5,6 +5,12 @@
 
 ## 🚀 Init del proyecto 
 
+* install enviroment:
+     >apt install npm 
+
+     >npm install express-generator -g
+
+
 * install dependencies:
      > npm install
 
@@ -13,14 +19,18 @@
 
 
 * config env:
-     >HOST_REDIS=192.168.99.100 
+     >HOST_REDIS=192.168.99.100 //for docker toolbox
+
+     >HOST_REDIS=localhost //for docker 
 
      >PORT_REDIS=6379
 
 
-* run the app:
+* run the app for windows:
      > SET DEBUG=tateti-express:* & npm start
 
+* run the app for linux:
+     > DEBUG=myapp:* npm start
      
 #
 #
