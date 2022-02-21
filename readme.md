@@ -15,7 +15,7 @@
      > npm install
 
 * redis run:
-     > docker run --name redistateti -p 6379:6379 redis 
+     > docker run --name redistateti -p 6380:6379 redis 
 
 
 * config env:

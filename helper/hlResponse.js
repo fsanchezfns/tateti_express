@@ -1,5 +1,5 @@
 function response(result) {
-    const ERROR_CODE = 400;
+    const ERROR_CODE = 200;
     const SUCESS_CODE = 200;
     const ERROR_FLAG = 'N';
     const SUCESS_FLAG = 'S';
@@ -11,7 +11,7 @@ function response(result) {
     if (result.flag == SUCESS_FLAG) {
         httpCode = SUCESS_CODE;
         flag = SUCESS_FLAG;
-        message = '';
+        message = result.message;
         payload = result.data;
 
 

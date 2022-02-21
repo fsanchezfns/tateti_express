@@ -96,7 +96,7 @@ async function getPlayers(token, idBoard) {
         }
 
     } else {
-        result.flag = ERROR_FLAG
+        result.flag = ERROR_FLAG;
         result.error = 'tokenInvalid'
         return result;
     }

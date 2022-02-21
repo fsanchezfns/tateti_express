@@ -16,6 +16,7 @@ function newToken() {
 
 
 function checkToken(token) {
+    console.log(token)
     if (TokenGenerator.isValid(token)) {
         isOk = true
     } else {

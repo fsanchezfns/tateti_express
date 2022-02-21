@@ -21,7 +21,7 @@ async function getBoard(dtoPlayer) {
     try {
         board = await dbRedis.get(key)
         dtoBoard = new Object();
-        dtoBoard.board = board;
+        dtoBoard.board = Array.from(board.split(','));
 
         //State
         key = `board#${idBoard}state`;
@@ -121,6 +121,7 @@ async function createBoard(dtoPlayerSimple) {
             dtoBoard.token = token;
             result.flag = SUCESS_FLAG;
             result.data = dtoBoard;
+            result.message= "Jugador N° 1";
             return result;
 
         } catch {
@@ -155,6 +156,7 @@ async function createBoard(dtoPlayerSimple) {
             dtoBoard.token = token;
             result.flag = SUCESS_FLAG;
             result.data = dtoBoard;
+            result.message= "Jugador N° 2";
             return result;
         } catch {
             driverCatch(key);
